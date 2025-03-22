@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Typography, Card, CardContent, Grid } from '@mui/material';
+import { Container, Typography, Card, CardContent, Grid, CardMedia } from '@mui/material';
 import './App.css';
 
 const patients = [
@@ -11,13 +11,19 @@ const patients = [
 function App() {
   return (
     <Container>
-      <Typography variant="h2" component="h1" gutterBottom>
+      <Typography variant="h2" component="h1" gutterBottom align="center" style={{ marginTop: '20px' }}>
         Welcome to the Caregiver App
       </Typography>
-      <Grid container spacing={3}>
+      <Grid container spacing={3} style={{ marginTop: '20px' }}>
         {patients.map((patient) => (
           <Grid item xs={12} sm={6} md={4} key={patient.id}>
             <Card>
+              <CardMedia
+                component="img"
+                height="140"
+                image={`https://via.placeholder.com/150?text=${patient.name}`}
+                alt={patient.name}
+              />
               <CardContent>
                 <Typography variant="h5" component="h2">
                   {patient.name}
