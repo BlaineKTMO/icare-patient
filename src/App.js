@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Container, 
   Typography, 
@@ -25,6 +25,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import './App.css';
 import Profile from './components/Profile';
 import SignUp from './components/SignUp';
+import Login from './components/Login';
 
 const theme = createTheme({
   palette: {
@@ -43,6 +44,18 @@ function App() {
   const [message, setMessage] = useState('');
   const [currentTab, setCurrentTab] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    setIsLoggedIn(loggedIn);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+    setIsLoggedIn(false);
+  };
 
   const handleAlertClick = () => {
     setAlertOpen(true);
@@ -66,7 +79,7 @@ function App() {
 
   const renderContent = () => {
     if (!isLoggedIn) {
-      return <SignUp onSignUpSuccess={() => setIsLoggedIn(true)} />;
+      return <Login onLoginSuccess={() => setIsLoggedIn(true)} />;
     }
 
     switch (currentTab) {
@@ -147,6 +160,10 @@ function App() {
               <Typography variant="h6" className="app-title">
                 Caregiver Connect
               </Typography>
+              <Box sx={{ flexGrow: 1 }} />
+              <Button color="inherit" onClick={handleLogout}>
+                Logout
+              </Button>
             </Toolbar>
           </AppBar>
         )}
