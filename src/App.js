@@ -1,45 +1,178 @@
-import React from 'react';
-import { Container, Typography, Card, CardContent, Grid, CardMedia } from '@mui/material';
+import React, { useState } from 'react';
+import { 
+  Container, 
+  Typography, 
+  Button, 
+  Snackbar, 
+  Alert, 
+  TextField, 
+  IconButton, 
+  Paper, 
+  Box,
+  BottomNavigation,
+  BottomNavigationAction,
+  AppBar,
+  Toolbar,
+  ThemeProvider,
+  createTheme
+} from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import PhoneIcon from '@mui/icons-material/Phone';
+import ChatIcon from '@mui/icons-material/Chat';
+import WarningIcon from '@mui/icons-material/Warning';
 import './App.css';
 
-const patients = [
-  { id: 1, name: 'John Doe', age: 65, condition: 'Diabetes' },
-  { id: 2, name: 'Jane Smith', age: 70, condition: 'Hypertension' },
-  { id: 3, name: 'Sam Johnson', age: 80, condition: 'Arthritis' },
-];
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#2196F3',
+    },
+    secondary: {
+      main: '#FF4081',
+    },
+  },
+});
 
 function App() {
-  return (
-    <Container>
-      <Typography variant="h2" component="h1" gutterBottom align="center" style={{ marginTop: '20px' }}>
-        Welcome to the Caregiver App
-      </Typography>
-      <Grid container spacing={3} style={{ marginTop: '20px' }}>
-        {patients.map((patient) => (
-          <Grid item xs={12} sm={6} md={4} key={patient.id}>
-            <Card>
-              <CardMedia
-                component="img"
-                height="140"
-                image={`https://via.placeholder.com/150?text=${patient.name}`}
-                alt={patient.name}
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const [currentTab, setCurrentTab] = useState(0);
+
+  const handleAlertClick = () => {
+    setAlertOpen(true);
+    console.log('Alert sent to caregiver!');
+  };
+
+  const handleCloseAlert = () => {
+    setAlertOpen(false);
+  };
+
+  const handleCallClick = () => {
+    console.log('Calling caregiver...');
+  };
+
+  const handleSendMessage = () => {
+    if (message.trim()) {
+      console.log('Sending message:', message);
+      setMessage('');
+    }
+  };
+
+  const renderContent = () => {
+    switch (currentTab) {
+      case 0:
+        return (
+          <Box className="home-content">
+            <Typography variant="h4" className="welcome-text">
+              Welcome to Caregiver Connect
+            </Typography>
+            <Button 
+              variant="contained" 
+              className="emergency-button"
+              size="large"
+              onClick={handleAlertClick}
+              startIcon={<WarningIcon />}
+            >
+              Send Emergency Alert
+            </Button>
+          </Box>
+        );
+      case 1:
+        return (
+          <Box className="call-content">
+            <Typography variant="h5" className="section-title">
+              Contact Your Caregiver
+            </Typography>
+            <Button 
+              variant="contained" 
+              className="call-button"
+              size="large"
+              onClick={handleCallClick}
+              startIcon={<PhoneIcon />}
+            >
+              Call Caregiver
+            </Button>
+          </Box>
+        );
+      case 2:
+        return (
+          <Box className="chat-content">
+            <Typography variant="h5" className="section-title">
+              Message Your Caregiver
+            </Typography>
+            <Box className="chat-messages">
+              {/* Messages would appear here */}
+            </Box>
+            <Box className="chat-input">
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Type your message..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               />
-              <CardContent>
-                <Typography variant="h5" component="h2">
-                  {patient.name}
-                </Typography>
-                <Typography color="textSecondary">
-                  Age: {patient.age}
-                </Typography>
-                <Typography color="textSecondary">
-                  Condition: {patient.condition}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Container>
+              <IconButton 
+                color="primary" 
+                onClick={handleSendMessage}
+                disabled={!message.trim()}
+              >
+                <SendIcon />
+              </IconButton>
+            </Box>
+          </Box>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <ThemeProvider theme={theme}>
+      <div className="App">
+        <AppBar position="fixed" className="app-bar">
+          <Toolbar>
+            <Typography variant="h6" className="app-title">
+              Caregiver Connect
+            </Typography>
+          </Toolbar>
+        </AppBar>
+
+        <Container className="app-container">
+          {renderContent()}
+        </Container>
+
+        <BottomNavigation
+          value={currentTab}
+          onChange={(event, newValue) => {
+            setCurrentTab(newValue);
+          }}
+          showLabels
+          className="bottom-nav"
+        >
+          <BottomNavigationAction label="Home" icon={<HomeIcon />} />
+          <BottomNavigationAction label="Call" icon={<PhoneIcon />} />
+          <BottomNavigationAction label="Chat" icon={<ChatIcon />} />
+        </BottomNavigation>
+
+        <Snackbar 
+          open={alertOpen} 
+          autoHideDuration={6000} 
+          onClose={handleCloseAlert}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleCloseAlert} 
+            severity="success" 
+            className="alert-snackbar"
+            sx={{ width: '100%' }}
+          >
+            Alert sent to your caregiver! They will be notified immediately.
+          </Alert>
+        </Snackbar>
+      </div>
+    </ThemeProvider>
   );
 }
 
