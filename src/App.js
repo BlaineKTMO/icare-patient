@@ -20,7 +20,11 @@ import HomeIcon from '@mui/icons-material/Home';
 import PhoneIcon from '@mui/icons-material/Phone';
 import ChatIcon from '@mui/icons-material/Chat';
 import WarningIcon from '@mui/icons-material/Warning';
+import SendIcon from '@mui/icons-material/Send';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import './App.css';
+import Profile from './components/Profile';
+import SignUp from './components/SignUp';
 
 const theme = createTheme({
   palette: {
@@ -38,6 +42,7 @@ function App() {
   const [chatOpen, setChatOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [currentTab, setCurrentTab] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleAlertClick = () => {
     setAlertOpen(true);
@@ -60,6 +65,10 @@ function App() {
   };
 
   const renderContent = () => {
+    if (!isLoggedIn) {
+      return <SignUp onSignUpSuccess={() => setIsLoggedIn(true)} />;
+    }
+
     switch (currentTab) {
       case 0:
         return (
@@ -76,6 +85,7 @@ function App() {
             >
               Send Emergency Alert
             </Button>
+            <Profile />
           </Box>
         );
       case 1:
@@ -131,30 +141,35 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <div className="App">
-        <AppBar position="fixed" className="app-bar">
-          <Toolbar>
-            <Typography variant="h6" className="app-title">
-              Caregiver Connect
-            </Typography>
-          </Toolbar>
-        </AppBar>
+        {isLoggedIn && (
+          <AppBar position="fixed" className="app-bar">
+            <Toolbar>
+              <Typography variant="h6" className="app-title">
+                Caregiver Connect
+              </Typography>
+            </Toolbar>
+          </AppBar>
+        )}
 
         <Container className="app-container">
           {renderContent()}
         </Container>
 
-        <BottomNavigation
-          value={currentTab}
-          onChange={(event, newValue) => {
-            setCurrentTab(newValue);
-          }}
-          showLabels
-          className="bottom-nav"
-        >
-          <BottomNavigationAction label="Home" icon={<HomeIcon />} />
-          <BottomNavigationAction label="Call" icon={<PhoneIcon />} />
-          <BottomNavigationAction label="Chat" icon={<ChatIcon />} />
-        </BottomNavigation>
+        {isLoggedIn && (
+          <BottomNavigation
+            value={currentTab}
+            onChange={(event, newValue) => {
+              setCurrentTab(newValue);
+            }}
+            showLabels
+            className="bottom-nav"
+          >
+            <BottomNavigationAction label="Home" icon={<HomeIcon />} />
+            <BottomNavigationAction label="Call" icon={<PhoneIcon />} />
+            <BottomNavigationAction label="Chat" icon={<ChatIcon />} />
+            <BottomNavigationAction label="Heart Rate" icon={<FavoriteIcon />} />
+          </BottomNavigation>
+        )}
 
         <Snackbar 
           open={alertOpen} 
