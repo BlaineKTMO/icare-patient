@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Paper, 
   Typography, 
@@ -14,7 +14,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  useTheme
+  useTheme,
+  CircularProgress
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -37,32 +38,52 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 
 const Profile = () => {
   const [anchorEl, setAnchorEl] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const open = Boolean(anchorEl);
   const theme = useTheme();
 
-  // This would typically come from your backend/state management
-  const userProfile = {
-    name: "John Doe",
-    age: 65,
-    phone: "(555) 123-4567",
-    email: "john.doe@example.com",
-    address: "123 Main St, Anytown, USA",
-    conditions: ["Hypertension", "Type 2 Diabetes"],
-    medications: ["Lisinopril", "Metformin"],
-    emergencyContact: {
-      name: "Jane Doe",
-      relationship: "Spouse",
-      phone: "(555) 987-6543"
-    },
-    personalInfo: {
-      bloodType: "A+",
-      height: "5'10\"",
-      weight: "170 lbs",
-      lastCheckup: "2024-02-15",
-      preferredLanguage: "English",
-      dietaryRestrictions: ["Low Sodium", "Low Sugar"]
+  // Update date formatting function
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).replace(/\//g, '/');
+    } catch (error) {
+      return dateString; // Return original string if date parsing fails
     }
   };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        // Get the email from localStorage or your auth system
+        const email = localStorage.getItem('userEmail');
+        if (!email) {
+          setError('No user email found');
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch(`http://localhost:5000/api/patients/${email}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch profile data');
+        }
+        const data = await response.json();
+        setUserProfile(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -72,10 +93,47 @@ const Profile = () => {
     setAnchorEl(null);
   };
 
-  const handleMenuItemClick = (action) => {
-    console.log(`Selected action: ${action}`);
+  const handleMenuItemClick = async (action) => {
+    switch (action) {
+      case 'edit':
+        // Implement edit functionality
+        break;
+      case 'settings':
+        // Implement settings functionality
+        break;
+      case 'logout':
+        localStorage.removeItem('userEmail');
+        window.location.href = '/login';
+        break;
+      default:
+        break;
+    }
     handleMenuClose();
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography color="error">{error}</Typography>
+      </Box>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Typography>No profile data available</Typography>
+      </Box>
+    );
+  }
 
   const accordionStyles = {
     '&:before': {
@@ -135,10 +193,10 @@ const Profile = () => {
           </Avatar>
           <Box>
             <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
-              {userProfile.name}
+              {userProfile.contact.name}
             </Typography>
             <Typography variant="subtitle1" sx={{ opacity: 0.9 }}>
-              Age: {userProfile.age}
+              Age: {userProfile.contact.age}
             </Typography>
           </Box>
         </Box>
@@ -216,7 +274,7 @@ const Profile = () => {
                 '&:hover': { bgcolor: '#f5f5f5' }
               }}>
                 <PhoneIcon sx={{ mr: 1, color: '#2196F3' }} />
-                <Typography variant="body1">{userProfile.phone}</Typography>
+                <Typography variant="body1">{userProfile.contact.number}</Typography>
               </Box>
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -229,20 +287,7 @@ const Profile = () => {
                 '&:hover': { bgcolor: '#f5f5f5' }
               }}>
                 <EmailIcon sx={{ mr: 1, color: '#2196F3' }} />
-                <Typography variant="body1">{userProfile.email}</Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                mb: 1,
-                p: 1,
-                borderRadius: '8px',
-                '&:hover': { bgcolor: '#f5f5f5' }
-              }}>
-                <LocationOnIcon sx={{ mr: 1, color: '#2196F3' }} />
-                <Typography variant="body1">{userProfile.address}</Typography>
+                <Typography variant="body1">{userProfile.contact.email}</Typography>
               </Box>
             </Grid>
           </Grid>
@@ -254,22 +299,22 @@ const Profile = () => {
           expandIcon={<ExpandMoreIcon />}
           sx={{ 
             ...summaryStyles,
-            bgcolor: '#f3e5f5',
+            bgcolor: '#e3f2fd',
             borderRadius: '8px',
             '&:hover': { 
-              bgcolor: '#e1bee7',
+              bgcolor: '#bbdefb',
               transform: 'translateX(5px)',
             }
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <MedicalServicesIcon sx={{ mr: 1, color: '#7b1fa2' }} />
+            <MedicalServicesIcon sx={{ mr: 1, color: '#1976d2' }} />
             <Typography sx={{ fontWeight: 'bold' }}>Medical Information</Typography>
           </Box>
         </AccordionSummary>
         <AccordionDetails>
-          <Grid container spacing={2} sx={{ mb: 2 }}>
-            <Grid item xs={6}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -279,10 +324,10 @@ const Profile = () => {
                 '&:hover': { bgcolor: '#f5f5f5' }
               }}>
                 <BloodtypeIcon sx={{ mr: 1, color: '#2196F3' }} />
-                <Typography variant="body2">Blood Type: {userProfile.personalInfo.bloodType}</Typography>
+                <Typography variant="body1">Blood Type: {userProfile.medical.bloodtype}</Typography>
               </Box>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6}>
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -292,10 +337,10 @@ const Profile = () => {
                 '&:hover': { bgcolor: '#f5f5f5' }
               }}>
                 <HeightIcon sx={{ mr: 1, color: '#2196F3' }} />
-                <Typography variant="body2">Height: {userProfile.personalInfo.height}</Typography>
+                <Typography variant="body1">Height: {userProfile.medical.height}</Typography>
               </Box>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6}>
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -305,10 +350,10 @@ const Profile = () => {
                 '&:hover': { bgcolor: '#f5f5f5' }
               }}>
                 <ScaleIcon sx={{ mr: 1, color: '#2196F3' }} />
-                <Typography variant="body2">Weight: {userProfile.personalInfo.weight}</Typography>
+                <Typography variant="body1">Weight: {userProfile.medical.weight}</Typography>
               </Box>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6}>
               <Box sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -318,59 +363,70 @@ const Profile = () => {
                 '&:hover': { bgcolor: '#f5f5f5' }
               }}>
                 <AccessTimeIcon sx={{ mr: 1, color: '#2196F3' }} />
-                <Typography variant="body2">Last Checkup: {userProfile.personalInfo.lastCheckup}</Typography>
+                <Typography variant="body1">Last Checkup: {formatDate(userProfile.medical.lastcheckup)}</Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>Conditions</Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {userProfile.medical.conditions.map((condition, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      bgcolor: '#e3f2fd',
+                      color: '#1976d2',
+                      px: 2,
+                      py: 1,
+                      borderRadius: '16px',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    {condition}
+                  </Box>
+                ))}
+              </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>Medications</Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {userProfile.medical.medications.map((medication, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      bgcolor: '#e3f2fd',
+                      color: '#1976d2',
+                      px: 2,
+                      py: 1,
+                      borderRadius: '16px',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    {medication}
+                  </Box>
+                ))}
+              </Box>
+            </Grid>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>Dietary Restrictions</Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {userProfile.medical.diet.map((item, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      bgcolor: '#e3f2fd',
+                      color: '#1976d2',
+                      px: 2,
+                      py: 1,
+                      borderRadius: '16px',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    {item}
+                  </Box>
+                ))}
               </Box>
             </Grid>
           </Grid>
-
-          <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-            Conditions:
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-            {userProfile.conditions.map((condition, index) => (
-              <Paper 
-                key={index} 
-                sx={{ 
-                  px: 2, 
-                  py: 1, 
-                  bgcolor: '#e3f2fd',
-                  color: '#1976d2',
-                  borderRadius: '20px',
-                  transition: 'all 0.3s ease-in-out',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(25, 118, 210, 0.2)',
-                  }
-                }}
-              >
-                {condition}
-              </Paper>
-            ))}
-          </Box>
-          <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-            Medications:
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {userProfile.medications.map((medication, index) => (
-              <Paper 
-                key={index} 
-                sx={{ 
-                  px: 2, 
-                  py: 1, 
-                  bgcolor: '#f3e5f5',
-                  color: '#7b1fa2',
-                  borderRadius: '20px',
-                  transition: 'all 0.3s ease-in-out',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(123, 31, 162, 0.2)',
-                  }
-                }}
-              >
-                {medication}
-              </Paper>
-            ))}
-          </Box>
         </AccordionDetails>
       </Accordion>
 
@@ -379,80 +435,48 @@ const Profile = () => {
           expandIcon={<ExpandMoreIcon />}
           sx={{ 
             ...summaryStyles,
-            bgcolor: '#e8f5e9',
+            bgcolor: '#e3f2fd',
             borderRadius: '8px',
             '&:hover': { 
-              bgcolor: '#c8e6c9',
+              bgcolor: '#bbdefb',
               transform: 'translateX(5px)',
             }
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <RestaurantIcon sx={{ mr: 1, color: '#2e7d32' }} />
-            <Typography sx={{ fontWeight: 'bold' }}>Dietary Information</Typography>
-          </Box>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {userProfile.personalInfo.dietaryRestrictions.map((restriction, index) => (
-              <Paper 
-                key={index} 
-                sx={{ 
-                  px: 2, 
-                  py: 1, 
-                  bgcolor: '#e8f5e9',
-                  color: '#2e7d32',
-                  borderRadius: '20px',
-                  transition: 'all 0.3s ease-in-out',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(46, 125, 50, 0.2)',
-                  }
-                }}
-              >
-                {restriction}
-              </Paper>
-            ))}
-          </Box>
-        </AccordionDetails>
-      </Accordion>
-
-      <Accordion sx={accordionStyles}>
-        <AccordionSummary
-          expandIcon={<ExpandMoreIcon />}
-          sx={{ 
-            ...summaryStyles,
-            bgcolor: '#ffebee',
-            borderRadius: '8px',
-            '&:hover': { 
-              bgcolor: '#ffcdd2',
-              transform: 'translateX(5px)',
-            }
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <LocalHospitalIcon sx={{ mr: 1, color: '#c62828' }} />
+            <FavoriteIcon sx={{ mr: 1, color: '#1976d2' }} />
             <Typography sx={{ fontWeight: 'bold' }}>Emergency Contact</Typography>
           </Box>
         </AccordionSummary>
         <AccordionDetails>
-          <Box sx={{ 
-            p: 2, 
-            borderRadius: '8px',
-            bgcolor: '#fff5f5',
-            transition: 'all 0.3s ease-in-out',
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: '0 4px 12px rgba(198, 40, 40, 0.1)',
-            }
-          }}>
-            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-              {userProfile.emergencyContact.name} ({userProfile.emergencyContact.relationship})
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              {userProfile.emergencyContact.phone}
-            </Typography>
-          </Box>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                mb: 1,
+                p: 1,
+                borderRadius: '8px',
+                '&:hover': { bgcolor: '#f5f5f5' }
+              }}>
+                <PersonIcon sx={{ mr: 1, color: '#2196F3' }} />
+                <Typography variant="body1">{userProfile.emergency.name}</Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                mb: 1,
+                p: 1,
+                borderRadius: '8px',
+                '&:hover': { bgcolor: '#f5f5f5' }
+              }}>
+                <PhoneIcon sx={{ mr: 1, color: '#2196F3' }} />
+                <Typography variant="body1">{userProfile.emergency.phone}</Typography>
+              </Box>
+            </Grid>
+          </Grid>
         </AccordionDetails>
       </Accordion>
     </Paper>
