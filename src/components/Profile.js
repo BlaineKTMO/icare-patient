@@ -35,6 +35,10 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ContactMailIcon from '@mui/icons-material/ContactMail';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
+// Firebase imports
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
+import { signOut } from 'firebase/auth';
 
 const Profile = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -61,22 +65,37 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        // Get the email from localStorage or your auth system
-        const email = localStorage.getItem('userEmail');
-        if (!email) {
-          setError('No user email found');
+        // Get the user ID from localStorage
+        const uid = localStorage.getItem('uid');
+        
+        if (!uid) {
+          setError('No user found. Please login again.');
           setLoading(false);
           return;
         }
 
-        const response = await fetch(`http://localhost:5000/api/patients/${email}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch profile data');
+        // Get user profile from Firestore
+        const userDocRef = doc(db, "patients", uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          // Structure the data to match the expected format
+          const userData = userDocSnap.data();
+          setUserProfile({
+            contact: userData.contact || {},
+            medical: userData.medical || {
+              conditions: [],
+              medications: [],
+              diet: []
+            },
+            emergency: userData.emergency || {}
+          });
+        } else {
+          setError('User profile not found');
         }
-        const data = await response.json();
-        setUserProfile(data);
       } catch (err) {
-        setError(err.message);
+        console.error("Error fetching profile:", err);
+        setError('Failed to load profile: ' + err.message);
       } finally {
         setLoading(false);
       }
@@ -102,8 +121,12 @@ const Profile = () => {
         // Implement settings functionality
         break;
       case 'logout':
-        localStorage.removeItem('userEmail');
-        window.location.href = '/login';
+        try {
+          await signOut(auth);
+          // Firebase auth state listener in App.js will handle the rest
+        } catch (error) {
+          console.error("Error signing out:", error);
+        }
         break;
       default:
         break;
@@ -369,7 +392,7 @@ const Profile = () => {
             <Grid item xs={12}>
               <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>Conditions</Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {userProfile.medical.conditions.map((condition, index) => (
+                {userProfile.medical.conditions && userProfile.medical.conditions.map((condition, index) => (
                   <Box
                     key={index}
                     sx={{
@@ -384,12 +407,17 @@ const Profile = () => {
                     {condition}
                   </Box>
                 ))}
+                {(!userProfile.medical.conditions || userProfile.medical.conditions.length === 0) && (
+                  <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+                    No conditions listed
+                  </Typography>
+                )}
               </Box>
             </Grid>
             <Grid item xs={12}>
               <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>Medications</Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {userProfile.medical.medications.map((medication, index) => (
+                {userProfile.medical.medications && userProfile.medical.medications.map((medication, index) => (
                   <Box
                     key={index}
                     sx={{
@@ -404,12 +432,17 @@ const Profile = () => {
                     {medication}
                   </Box>
                 ))}
+                {(!userProfile.medical.medications || userProfile.medical.medications.length === 0) && (
+                  <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+                    No medications listed
+                  </Typography>
+                )}
               </Box>
             </Grid>
             <Grid item xs={12}>
               <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>Dietary Restrictions</Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {userProfile.medical.diet.map((item, index) => (
+                {userProfile.medical.diet && userProfile.medical.diet.map((item, index) => (
                   <Box
                     key={index}
                     sx={{
@@ -424,6 +457,11 @@ const Profile = () => {
                     {item}
                   </Box>
                 ))}
+                {(!userProfile.medical.diet || userProfile.medical.diet.length === 0) && (
+                  <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+                    No dietary restrictions listed
+                  </Typography>
+                )}
               </Box>
             </Grid>
           </Grid>
@@ -483,4 +521,4 @@ const Profile = () => {
   );
 };
 
-export default Profile; 
+export default Profile;

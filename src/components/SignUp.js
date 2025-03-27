@@ -13,37 +13,26 @@ import {
   Chip,
   IconButton,
   Alert,
-  Snackbar
+  Snackbar,
+  Link
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import PersonIcon from '@mui/icons-material/Person';
-import PhoneIcon from '@mui/icons-material/Phone';
-import EmailIcon from '@mui/icons-material/Email';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import EditIcon from '@mui/icons-material/Edit';
-import SettingsIcon from '@mui/icons-material/Settings';
-import LogoutIcon from '@mui/icons-material/Logout';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import BloodtypeIcon from '@mui/icons-material/Bloodtype';
-import HeightIcon from '@mui/icons-material/Height';
-import ScaleIcon from '@mui/icons-material/Scale';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ContactMailIcon from '@mui/icons-material/ContactMail';
-import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
-import RestaurantIcon from '@mui/icons-material/Restaurant';
+// Firebase imports
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 
 const steps = ['User Account', 'Contact Information', 'Medical Information', 'Emergency Contact'];
 
-const SignUp = () => {
+const SignUp = ({ onLoginClick }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [error, setError] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [formData, setFormData] = useState({
     user: {
       email: '',
@@ -78,6 +67,8 @@ const SignUp = () => {
   });
 
   const handleNext = () => {
+    if (!validateStep()) return;
+    
     if (activeStep === steps.length - 1) {
       handleSubmit();
     } else {
@@ -123,6 +114,10 @@ const SignUp = () => {
           setError('Passwords do not match');
           return false;
         }
+        if (formData.user.password.length < 6) {
+          setError('Password must be at least 6 characters long');
+          return false;
+        }
         break;
       case 1:
         if (!formData.contact.name || !formData.contact.email || !formData.contact.number) {
@@ -153,24 +148,62 @@ const SignUp = () => {
     if (!validateStep()) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/patients', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // Create user with Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        formData.user.email, 
+        formData.user.password
+      );
+      
+      const userId = userCredential.user.uid;
+      
+      // Prepare patient data for Firestore
+      const patientData = {
+        contact: formData.contact,
+        medical: {
+          ...formData.medical,
+          // Convert Date object to timestamp if it exists
+          lastcheckup: formData.medical.lastcheckup ? formData.medical.lastcheckup.toISOString() : null
         },
-        body: JSON.stringify(formData),
-      });
+        emergency: formData.emergency,
+        createdAt: new Date().toISOString(),
+      };
+      
+      // Store patient data in Firestore
+      await setDoc(doc(db, "patients", userId), patientData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Something went wrong');
-      }
-
+      // Show success message
+      setSnackbarMessage('Registration successful! You can now log in.');
+      setSnackbarSeverity('success');
       setSnackbarOpen(true);
-      // Handle successful signup (e.g., redirect to login)
-    } catch (err) {
-      setError(err.message);
+      
+      // Redirect to login page after 2 seconds using the provided onLoginClick function
+      setTimeout(() => {
+        if (onLoginClick) onLoginClick();
+      }, 2000);
+      
+    } catch (error) {
+      let errorMessage = 'Registration failed';
+      
+      // Handle common Firebase error codes for authentication
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          errorMessage = 'This email is already in use. Please use a different email or login.';
+          break;
+        case 'auth/invalid-email':
+          errorMessage = 'Invalid email address format';
+          break;
+        case 'auth/weak-password':
+          errorMessage = 'Password is too weak. Please use a stronger password.';
+          break;
+        default:
+          errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      setSnackbarMessage(errorMessage);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     }
   };
 
@@ -196,6 +229,7 @@ const SignUp = () => {
               onChange={(e) => handleInputChange('user', 'password', e.target.value)}
               margin="normal"
               required
+              helperText="Password must be at least 6 characters"
             />
             <TextField
               fullWidth
@@ -426,16 +460,31 @@ const SignUp = () => {
             {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
           </Button>
         </Box>
+        
+        {/* Add a "Back to Login" link */}
+        <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Link href="#" variant="body2" onClick={onLoginClick}>
+            Already have an account? Sign In
+          </Link>
+        </Box>
       </Paper>
 
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={() => setSnackbarOpen(false)}
-        message="Registration successful!"
-      />
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setSnackbarOpen(false)} 
+          severity={snackbarSeverity} 
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage || 'Registration successful!'}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
 
-export default SignUp; 
+export default SignUp;

@@ -1,7 +1,29 @@
+/* Base App Styling */
+:root {
+  --background-gradient: linear-gradient(135deg, #F9FAFB 0%, #EFF6FF 100%);
+  --primary-gradient: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
+  --secondary-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  --error-gradient: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  --warning-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  --surface-border-radius: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #F9FAFB;
+  min-height: 100vh;
+}
+
 .App {
   text-align: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+  background: var(--background-gradient);
   display: flex;
   flex-direction: column;
 }
@@ -41,29 +63,62 @@
   }
 }
 
+/* Header and Navigation */
 .app-bar {
-  background: linear-gradient(45deg, #2196F3, #64B5F6) !important;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+  background: var(--primary-gradient) !important;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15) !important;
+  height: 70px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .app-title {
   color: white !important;
-  font-weight: bold !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
 }
 
 .app-container {
   flex: 1;
-  padding: 80px 20px 80px 20px;
+  padding: 85px 20px 90px 20px;
   max-width: 100% !important;
   margin: 0 auto;
   overflow-y: auto;
+  transition: padding 0.3s ease;
 }
 
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed !important;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top-left-radius: var(--surface-border-radius);
+  border-top-right-radius: var(--surface-border-radius);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08) !important;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+}
+
+.bottom-nav-action {
+  min-width: 60px !important;
+  padding: 8px 0 12px !important;
+}
+
+.bottom-nav-action.active {
+  color: #2563EB !important;
+}
+
+/* Home Page Content */
 .home-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
   padding: 20px;
   width: 100%;
   max-width: 800px;
@@ -71,125 +126,365 @@
 }
 
 .welcome-text {
-  color: #1976D2;
-  font-weight: bold;
-  margin-bottom: 30px;
+  color: #1E40AF;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 32px;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .section-title {
-  color: #1976D2;
-  font-weight: bold;
-  margin-bottom: 20px;
+  color: #1E40AF;
+  font-weight: 700;
+  margin-bottom: 24px;
+  letter-spacing: -0.01em;
 }
 
+/* Button Styling */
 .emergency-button, .call-button {
   width: 100% !important;
-  max-width: 300px !important;
-  height: 60px !important;
+  max-width: 320px !important;
+  height: 64px !important;
   font-size: 1.2rem !important;
-  border-radius: 10px !important;
+  border-radius: 16px !important;
   text-transform: none !important;
-  font-weight: bold !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
   transition: all 0.3s ease !important;
   transform: translateY(0);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
 }
 
 .emergency-button {
-  background: linear-gradient(45deg, #FF4081, #FF80AB) !important;
-  box-shadow: 0 4px 15px rgba(255, 64, 129, 0.3) !important;
+  background: var(--error-gradient) !important;
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.25) !important;
 }
 
 .emergency-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 64, 129, 0.4) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(239, 68, 68, 0.35) !important;
 }
 
 .call-button {
-  background: linear-gradient(45deg, #2196F3, #64B5F6) !important;
-  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3) !important;
+  background: var(--primary-gradient) !important;
+  box-shadow: 0 8px 30px rgba(37, 99, 235, 0.25) !important;
 }
 
 .call-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4) !important;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.35) !important;
 }
 
-.bottom-nav {
-  position: fixed !important;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: white !important;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.1) !important;
-  z-index: 1000;
-}
-
+/* Chat Related Styling */
 .chat-content {
-  height: 100%;
+  height: calc(100vh - 160px);
   display: flex;
   flex-direction: column;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .chat-messages {
   flex: 1;
   width: 100%;
-  padding: 15px;
+  padding: 20px;
   overflow-y: auto;
-  background-color: #f5f5f5;
-  border-radius: 10px;
-  margin-bottom: 20px;
+  background-color: #F9FAFB;
+  border-radius: 24px;
+  margin-bottom: 24px;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.chat-bubble {
+  max-width: 80%;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  border-radius: 16px;
+  position: relative;
+  animation: fadeIn 0.3s ease;
+}
+
+.chat-bubble.sent {
+  background: var(--primary-gradient);
+  color: white;
+  border-bottom-right-radius: 4px;
+  margin-left: auto;
+}
+
+.chat-bubble.received {
+  background: white;
+  color: #111827;
+  border-bottom-left-radius: 4px;
+  margin-right: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .chat-input {
   width: 100%;
-  padding: 15px;
+  padding: 12px;
   background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   display: flex;
-  gap: 10px;
+  gap: 12px;
+  align-items: center;
 }
 
+.chat-input .MuiOutlinedInput-root {
+  border-radius: 16px !important;
+}
+
+/* Alert and Notification Styling */
 .alert-snackbar {
-  background: linear-gradient(45deg, #4CAF50, #81C784) !important;
-  color: white !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Mobile-specific styles */
-@media (max-width: 600px) {
-  .app-container {
-    padding: 70px 10px 70px 10px;
-  }
-
-  .welcome-text {
-    font-size: 1.5rem;
-  }
-
-  .section-title {
-    font-size: 1.2rem;
-  }
-
-  .emergency-button, .call-button {
-    height: 50px !important;
-    font-size: 1rem !important;
-  }
+.alert-snackbar.success {
+  background: var(--secondary-gradient) !important;
 }
 
-.heart-rate-content {
-  padding: 20px;
-  margin-top: 64px;
-  margin-bottom: 56px;
+.alert-snackbar.error {
+  background: var(--error-gradient) !important;
+}
+
+.alert-snackbar.warning {
+  background: var(--warning-gradient) !important;
+}
+
+/* Auth Forms Styling */
+.auth-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 120px);
+  min-height: 100vh;
+  padding: 20px;
+  background: var(--background-gradient);
 }
 
-.heart-rate-content .MuiPaper-root {
-  max-width: 400px;
+.auth-form {
   width: 100%;
+  max-width: 400px;
+  padding: 32px;
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.auth-logo {
+  margin-bottom: 24px;
+  width: 64px;
+  height: 64px;
+}
+
+.auth-title {
+  margin-bottom: 24px;
+  color: #111827;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.auth-form-field {
+  margin-bottom: 20px !important;
+}
+
+.auth-submit-button {
+  margin-top: 12px !important;
+  margin-bottom: 24px !important;
+  height: 50px !important;
+}
+
+.auth-alternative {
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* Profile Card Styling */
+.profile-card {
+  border-radius: 24px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+.profile-header {
+  background: var(--primary-gradient);
+  color: white;
+  padding: 24px;
+  position: relative;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border: 3px solid white;
+}
+
+.profile-name {
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-top: 12px;
+  letter-spacing: -0.01em;
+}
+
+.profile-section {
+  padding: 20px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.profile-section-title {
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-section-title .MuiSvgIcon-root {
+  color: #2563EB;
+}
+
+.profile-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: #F9FAFB;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.profile-item-icon {
+  margin-right: 12px;
+  color: #2563EB;
+}
+
+.profile-chip-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.profile-chip {
+  border-radius: 8px;
+  font-weight: 500;
+  background: #EFF6FF;
+  color: #1E40AF;
+  padding: 8px 16px;
+}
+
+/* Heart Rate Monitor Styling */
+.heart-rate-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 800px;
   margin: 0 auto;
+  width: 100%;
+}
+
+.heart-rate-card {
+  width: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+}
+
+.heart-rate-header {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: white;
+  padding: 24px;
+  text-align: center;
+}
+
+.heart-rate-value {
+  font-size: 3rem;
+  font-weight: 800;
+  margin: 16px 0;
+}
+
+.heart-rate-chart {
+  padding: 20px;
+  height: 300px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 75px 16px 85px 16px;
+  }
+  
+  .welcome-text {
+    font-size: 1.75rem;
+  }
+  
+  .section-title {
+    font-size: 1.4rem;
+  }
+  
+  .emergency-button, .call-button {
+    height: 56px !important;
+    font-size: 1.1rem !important;
+    border-radius: 14px !important;
+  }
+  
+  .auth-form {
+    padding: 24px;
+  }
+  
+  .profile-header {
+    padding: 20px;
+  }
+  
+  .profile-avatar {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-container {
+    padding: 70px 12px 75px 12px;
+  }
+  
+  .welcome-text {
+    font-size: 1.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.2rem;
+  }
+  
+  .emergency-button, .call-button {
+    height: 50px !important;
+    font-size: 1rem !important;
+  }
+  
+  .auth-form {
+    padding: 20px;
+  }
 }

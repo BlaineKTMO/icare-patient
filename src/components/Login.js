@@ -11,8 +11,10 @@ import {
   Snackbar
 } from '@mui/material';
 import LoginIcon from '@mui/icons-material/Login';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
 
-const Login = ({ onLoginSuccess }) => {
+const Login = ({ onLoginSuccess, onSignUpClick }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,31 +23,38 @@ const Login = ({ onLoginSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // First, get the patient data to verify credentials
-      const response = await fetch(`http://localhost:5000/api/patients/${email}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Invalid email or password');
-      }
-
-      const data = await response.json();
+      // Use Firebase Authentication instead of the custom login
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // Verify password
-      if (data.user.password === password) {
-        // Store user data in localStorage or state management
-        localStorage.setItem('userEmail', email);
-        localStorage.setItem('isLoggedIn', 'true');
-        onLoginSuccess();
-      } else {
-        throw new Error('Invalid email or password');
-      }
+      // Successfully logged in
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('uid', userCredential.user.uid);
+      
+      onLoginSuccess();
     } catch (error) {
-      setError(error.message);
+      let errorMessage = 'Login failed';
+      
+      // Handle common Firebase error codes
+      switch (error.code) {
+        case 'auth/invalid-email':
+          errorMessage = 'Invalid email address format';
+          break;
+        case 'auth/user-disabled':
+          errorMessage = 'This account has been disabled';
+          break;
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+          errorMessage = 'Invalid email or password';
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = 'Too many failed login attempts. Please try again later';
+          break;
+        default:
+          errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
       setShowError(true);
     }
   };
@@ -91,7 +100,7 @@ const Login = ({ onLoginSuccess }) => {
             Sign In
           </Button>
           <Box sx={{ textAlign: 'center' }}>
-            <Link href="#" variant="body2" onClick={() => window.location.href = '/signup'}>
+            <Link href="#" variant="body2" onClick={onSignUpClick}>
               {"Don't have an account? Sign Up"}
             </Link>
           </Box>
@@ -111,4 +120,4 @@ const Login = ({ onLoginSuccess }) => {
   );
 };
 
-export default Login; 
+export default Login;
